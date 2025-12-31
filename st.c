@@ -277,8 +277,6 @@ xwrite(int fd, const char *s, size_t len)
  * @warning DESIGN: Uses die() which calls exit() - no cleanup possible
  * @bug ERROR HANDLING: No graceful degradation on memory pressure
  * @bug INTEGER OVERFLOW: len parameter not validated for potential overflow
- * 
- * @return Pointer to allocated memory block, or program terminates
  */
 void *
 xmalloc(size_t len)
@@ -349,8 +347,6 @@ utf8decode(const char *c, Rune *u, size_t clen)
  * @warning PERFORMANCE: Linear search through mask array for each call
  * @warning COMPLEXITY: Multiple encoding patterns to track
  * @note Single-byte operation with minimal branching for efficiency
- * 
- * @return Decoded byte value without continuation bits, or 0 if invalid pattern
  */
 Rune
 utf8decodebyte(char c, size_t *i)
@@ -394,8 +390,6 @@ utf8encode(Rune u, char *c)
  * 
  * @note Used by utf8encode() for multi-byte sequences
  * @note Implements RFC 3629 UTF-8 encoding standard
- * 
- * @return UTF-8 encoded byte
  */
 char
 utf8encodebyte(Rune u, size_t i)
@@ -423,8 +417,6 @@ utf8encodebyte(Rune u, size_t i)
  * @note Implements RFC 3629 UTF-8 validation
  * @note Rejects surrogate pairs and invalid code points
  * @note Handles overlong sequences correctly
- * 
- * @return Number of bytes in UTF-8 sequence, 0 if invalid character
  */
 size_t
 utf8validate(Rune *u, size_t i)
