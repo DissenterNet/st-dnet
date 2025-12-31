@@ -264,6 +264,22 @@ xwrite(int fd, const char *s, size_t len)
 	return aux;
 }
 
+/**
+ * @brief Allocate memory with error handling
+ * @param len Number of bytes to allocate
+ * @return Pointer to allocated memory, or terminates on failure
+ * 
+ * This is a wrapper around malloc() that provides consistent error handling.
+ * If allocation fails, it prints an error message and terminates the program.
+ * 
+ * @warning CRITICAL: This function terminates the program on allocation failure
+ * @warning SECURITY: No input validation of len parameter
+ * @warning DESIGN: Uses die() which calls exit() - no cleanup possible
+ * @bug ERROR HANDLING: No graceful degradation on memory pressure
+ * @bug INTEGER OVERFLOW: len parameter not validated for potential overflow
+ * 
+ * @return Pointer to allocated memory block, or program terminates
+ */
 void *
 xmalloc(size_t len)
 {
@@ -320,6 +336,22 @@ utf8decode(const char *c, Rune *u, size_t clen)
 	return len;
 }
 
+/**
+ * @brief Decode single UTF-8 byte and determine encoding type
+ * @param c Input byte to decode
+ * @param i Pointer to store encoding type index
+ * @return Decoded byte value or 0 if invalid
+ * 
+ * This function extracts the significant bits from a UTF-8 byte
+ * according to the UTF-8 encoding standard. It determines how many
+ * continuation bytes follow based on the leading bits.
+ * 
+ * @warning PERFORMANCE: Linear search through mask array for each call
+ * @warning COMPLEXITY: Multiple encoding patterns to track
+ * @note Single-byte operation with minimal branching for efficiency
+ * 
+ * @return Decoded byte value without continuation bits, or 0 if invalid pattern
+ */
 Rune
 utf8decodebyte(char c, size_t *i)
 {
@@ -348,12 +380,52 @@ utf8encode(Rune u, char *c)
 	return len;
 }
 
+/**
+ * @brief Encode single byte of UTF-8 sequence
+ * @param u Unicode character to encode
+ * @param i Byte position in UTF-8 sequence (0-based)
+ * @return Encoded UTF-8 byte
+ * 
+ * This function encodes a single byte of a UTF-8 sequence
+ * based on the byte position and the Unicode character.
+ * 
+ * @warning PERFORMANCE: Simple bit operation for efficiency
+ * @warning COMPLEXITY: Multiple encoding patterns to track
+ * 
+ * @note Used by utf8encode() for multi-byte sequences
+ * @note Implements RFC 3629 UTF-8 encoding standard
+ * 
+ * @return UTF-8 encoded byte
+ */
 char
 utf8encodebyte(Rune u, size_t i)
 {
 	return utfbyte[i] | (u & ~utfmask[i]);
 }
 
+/**
+ * @brief Validate Unicode character according to UTF-8 standard
+ * @param u Pointer to Unicode character to validate
+ * @param i Current position in validation sequence (0-based)
+ * @return Number of bytes in the UTF-8 sequence, or 0 if invalid
+ * 
+ * This function validates a Unicode character to ensure it conforms
+ * to UTF-8 encoding standard. It checks for:
+ * - Valid Unicode range (not in surrogate pairs or invalid code points)
+ * - Proper UTF-8 byte sequence length
+ * 
+ * @warning SECURITY: Invalid Unicode characters could be used for attacks
+ * @warning PERFORMANCE: Multiple comparisons for range checking
+ * @warning COMPLEXITY: Complex validation logic for edge cases
+ * @bug LOGIC ERROR: Some invalid sequences may be accepted as valid
+ * @bug STANDARDS: May not handle all edge cases of Unicode standard
+ * 
+ * @note Implements RFC 3629 UTF-8 validation
+ * @note Rejects surrogate pairs and invalid code points
+ * @note Handles overlong sequences correctly
+ * 
+ * @return Number of bytes in UTF-8 sequence, 0 if invalid character
+ */
 size_t
 utf8validate(Rune *u, size_t i)
 {
